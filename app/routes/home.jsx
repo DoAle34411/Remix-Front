@@ -1,3 +1,7 @@
+// Home.jsx
+import React from 'react';
+import Navbar from "../components/Navbar";
+import BookList from '../components/Booklist';
 import { redirect } from "@remix-run/node";
 import { getSession } from "../utils/auth"; // Adjust the path as necessary
 
@@ -11,10 +15,10 @@ export const loader = async ({ request }) => {
 export default function Home() {
   return (
     <div>
+      <Navbar />
       <h1>Home Page</h1>
-      <form method="post" action="/logout">
-        <button type="submit">Logout</button>
-      </form>
+      <BookList />
     </div>
   );
 }
+
