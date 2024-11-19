@@ -17,12 +17,30 @@ export default function Navbar() {
             >
               Home
             </a>
+            <a 
+              href="/libros" 
+              className="text-gray-300 hover:text-white px-3 py-2 rounded-md"
+            >
+              Libros
+            </a>
+            <a 
+              href="/usuario" 
+              className="text-gray-300 hover:text-white px-3 py-2 rounded-md"
+            >
+              Usuario
+            </a>
+            <a 
+              href="/carrito" 
+              className="text-gray-300 hover:text-white px-3 py-2 rounded-md"
+            >
+              Carrito
+            </a>
             <form action="/logout" method="post">
               <button 
                 type="submit"
                 className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-md transition-colors"
               >
-                Logout
+                Cerrar sesión
               </button>
             </form>
           </div>
@@ -58,23 +76,35 @@ export default function Navbar() {
       <div className={`${isMobileMenuOpen ? 'block' : 'hidden'} md:hidden`}>
         <div className="px-2 pt-2 pb-3 space-y-1">
           <a
-            href="/"
+            href="/home"
             className="block text-gray-300 hover:text-white hover:bg-gray-700 px-3 py-2 rounded-md"
           >
             Home
           </a>
           <a
-            href="/profile"
+            href="/libros"
             className="block text-gray-300 hover:text-white hover:bg-gray-700 px-3 py-2 rounded-md"
           >
-            Profile
+            Libros
+          </a>
+          <a
+            href="/usuario"
+            className="block text-gray-300 hover:text-white hover:bg-gray-700 px-3 py-2 rounded-md"
+          >
+            Usuario
+          </a>
+          <a
+            href="/carrito"
+            className="block text-gray-300 hover:text-white hover:bg-gray-700 px-3 py-2 rounded-md"
+          >
+            Carrito
           </a>
           <form action="/logout" method="post">
             <button
               type="submit"
               className="w-full text-left text-gray-300 hover:text-white hover:bg-red-600 px-3 py-2 rounded-md"
             >
-              Logout
+              Cerrar sesión
             </button>
           </form>
         </div>
