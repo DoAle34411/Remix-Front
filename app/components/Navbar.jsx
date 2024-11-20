@@ -18,7 +18,7 @@ export default function Navbar() {
               Home
             </a>
             <a 
-              href="/libros" 
+              href="/books/libros" 
               className="text-gray-300 hover:text-white px-3 py-2 rounded-md"
             >
               Libros
