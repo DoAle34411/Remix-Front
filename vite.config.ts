@@ -13,6 +13,9 @@ export default defineConfig({
       routes(defineRoutes) {
         return defineRoutes(route => {
           route("books/libros", "routes/books/libros.jsx");
+          route("books/bookDetails/:id", "routes/books/bookDetails.$id.jsx");
+          route("usuario","routes/user/user.jsx")
+          route("carrito", "routes/carrito/carrito.jsx")
         });
       }
     }),

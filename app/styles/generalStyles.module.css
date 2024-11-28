@@ -138,3 +138,11 @@
     margin: 0 auto; /* Center the date picker input */
     text-align: left; /* Ensure text inside the date input is centered */
   }
+
+  .flexGrid{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin:5%;
+    gap:1%;
+  }

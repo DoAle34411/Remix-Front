@@ -1,4 +1,4 @@
-// Home.jsx
+//routes/home
 import React from 'react';
 import Navbar from "../components/Navbar";
 import BookList from '../components/Booklist';
@@ -7,11 +7,12 @@ import { getSession } from "../utils/auth";
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 
-// Check if the user is logged in
+// Check if the user is logged in and get the userId from the session
 export const loader = async ({ request }) => {
   const session = await getSession(request.headers.get("Cookie"));
+  console.log(session.get('userId'));
   if (!session.has("userId")) return redirect("/login");
-  return null;
+  return { userId: session.get("userId"), UUID: session.get("UUID") };
 };
 
 const Home = ({ userId }) => {
@@ -36,16 +37,16 @@ const Home = ({ userId }) => {
   useEffect(() => {
     const fetchRecommendations = async () => {
       try {
-        const historyResponse = await axios.get(`https://api-express-web.onrender.com/rents/user/${userId}`);
+        const historyResponse = await axios.get(`https://api-express-web.onrender.com/rent/rents/genres/user/${UUID}`);
         if (historyResponse.data.length === 0) {
           // No history, get top 6 most rented books of all time
-          const allTimeRentedResponse = await axios.get('https://api-express-web.onrender.com/rents/genres/most-rented');
+          const allTimeRentedResponse = await axios.get('https://api-express-web.onrender.com/rent/rents/genres/most-rented');
           const topGenres = allTimeRentedResponse.data.slice(0, 6).map(genre => genre[0]);
-          const books = await axios.get('/books', { params: { genres: topGenres } });
+          const books = await axios.get('https://api-express-web.onrender.com/books', { params: { genres: topGenres } });
           setRecommendedBooks(books.data);
         } else {
           // Get most rented genres by user and recommend books based on those genres
-          const userGenresResponse = await axios.get(`https://api-express-web.onrender.com/rents/genres/user/${userId}`);
+          const userGenresResponse = await axios.get(`https://api-express-web.onrender.com/rent/rents/genres/user/${UUID}`);
           const topGenres = userGenresResponse.data.slice(0, 6).map(genre => genre[0]);
           const books = await axios.get('https://api-express-web.onrender.com/books', { params: { genres: topGenres } });
           setRecommendedBooks(books.data);
@@ -54,18 +55,21 @@ const Home = ({ userId }) => {
         console.error('Error fetching recommendations:', error);
       }
     };
-    fetchRecommendations();
+
+    if (userId) {
+      fetchRecommendations();
+    }
   }, [userId]);
 
   // Fetch trending books
   useEffect(() => {
     const fetchTrendingBooks = async () => {
       try {
-        const allTimeRented = await axios.get('https://api-express-web.onrender.com/rents/genres/most-rented');
+        const allTimeRented = await axios.get('https://api-express-web.onrender.com/rent/rents/genres/most-rented');
         const topAllTimeBooks = allTimeRented.data.slice(0, 3).map(book => book[0]);
         const lastMonth = new Date();
         lastMonth.setMonth(lastMonth.getMonth() - 1);
-        const recentRented = await axios.get('https://api-express-web.onrender.com/rents/genres/most-rented/time', {
+        const recentRented = await axios.get('https://api-express-web.onrender.com/rent/rents/genres/most-rented/time', {
           params: { startDate: lastMonth.toISOString(), endDate: new Date().toISOString() }
         });
         const topRecentBooks = recentRented.data.slice(0, 3).map(book => book[0]);
