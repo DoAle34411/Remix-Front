@@ -247,10 +247,10 @@ const Home = () => {
               <h3 className="text-xl font-bold text-gray-700 mb-2">{event.name}</h3>
               <p className="text-gray-600 mb-4">{event.descripcion}</p>
               <div className={styles.flexGrid}>
-                {eventBooks[event.id]?.length > 0 ? (
-                  eventBooks[event.id].map((book) => (
+                {eventBooks[event._id]?.length > 0 ? (
+                  eventBooks[event._id].map((book) => (
                     <div
-                      key={book._id}
+                      key={book.__id}
                       onClick={() => navigate(`/books/bookDetails/${book._id}`)}
                       className="flex flex-col w-64 bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
                     >
