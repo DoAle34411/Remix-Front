@@ -72,6 +72,9 @@ const Usuario = () => {
       const response = await fetch(`https://api-express-web.onrender.com/users/update-password/`, {
         method: 'POST',
         credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
           email: user.email,
           oldPassword: passwordForm.oldPassword,
