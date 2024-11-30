@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLoaderData, useNavigate } from '@remix-run/react';
 import { json, redirect } from '@remix-run/node';
 import { getSession } from '../../utils/auth';
@@ -8,17 +8,18 @@ import { Input } from '../../components/Input.jsx';
 import { Alert, AlertDescription } from '../../components/Alert.jsx';
 import Navbar from '../../components/Navbar.jsx';
 
-// Loader function - this goes outside the component
+// Loader function
 export async function loader({ request }) {
   const session = await getSession(request.headers.get("Cookie"));
   const userId = session.get("userId");
+  const UUID = session.get("UUID")
 
   if (!userId) {
     return redirect("/login");
   }
 
   try {
-    const response = await fetch(`https://api-express-web.onrender.com/users/cedula/${userId}`, {
+    const userResponse = await fetch(`https://api-express-web.onrender.com/users/cedula/${userId}`, {
       credentials: 'include',
       headers: {
         'Accept': 'application/json',
@@ -26,20 +27,31 @@ export async function loader({ request }) {
       }
     });
 
-    if (!response.ok) {
+    if (!userResponse.ok) {
       throw new Error('Failed to fetch user data');
     }
 
-    const userData = await response.json();
-    return json({ user: userData });
+    const userData = await userResponse.json();
+
+    const rentResponse = await fetch(`https://api-express-web.onrender.com/rent/rents/user/${UUID}`, {
+      credentials: 'include',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const rents = rentResponse.ok ? await rentResponse.json() : [];
+
+    return json({ user: userData, rents });
   } catch (error) {
-    console.error('Error fetching user data:', error);
+    console.error('Error fetching data:', error);
     return redirect("/login");
   }
 }
 
 const Usuario = () => {
-  const { user } = useLoaderData();
+  const { user, rents } = useLoaderData();
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [passwordForm, setPasswordForm] = useState({
     oldPassword: '',
@@ -49,6 +61,38 @@ const Usuario = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const navigate = useNavigate();
+  const [rentsWithBooks, setRentsWithBooks] = useState([]);
+
+  useEffect(() => {
+    const fetchBookNames = async () => {
+      const updatedRents = await Promise.all(
+        rents.map(async (rent) => {
+          const booksWithNames = await Promise.all(
+            rent.books.map(async (book) => {
+              try {
+                const response = await fetch(`https://api-express-web.onrender.com/books/${book.id}`, {
+                  credentials: 'include',
+                  headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                  }
+                });
+                const bookData = await response.json();
+                return { ...book, name: bookData.name };
+              } catch (error) {
+                console.error(`Failed to fetch book with ID ${book.id}:`, error);
+                return { ...book, name: 'Desconocido' }; // Default if fetch fails
+              }
+            })
+          );
+          return { ...rent, books: booksWithNames };
+        })
+      );
+      setRentsWithBooks(updatedRents);
+    };
+
+    fetchBookNames();
+  }, [rents]);
 
   const handlePasswordChange = (e) => {
     const { name, value } = e.target;
@@ -101,7 +145,7 @@ const Usuario = () => {
 
   return (
     <div>
-      <Navbar/>
+      <Navbar />
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-4xl mx-auto p-6">
           <Card className="w-full">
@@ -136,7 +180,6 @@ const Usuario = () => {
                     <p>{user.gender}</p>
                   </div>
                 </div>
-
                 <div className="mt-8">
                   <Button 
                     onClick={() => setIsChangingPassword(!isChangingPassword)}
@@ -198,6 +241,33 @@ const Usuario = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Historial Section */}
+          {rents.length > 0 && (
+            <Card className="w-full mt-6">
+              <CardHeader>
+                <CardTitle className="text-2xl font-bold">Historial</CardTitle>
+              </CardHeader>
+              <CardContent>
+              {rentsWithBooks.map((rent, index) => (
+                  <div key={rent.id} className="mb-4">
+                    <h3 className="text-lg font-semibold">Renta No. {index + 1}</h3>
+                    <p><strong>Fecha Inicio:</strong> {new Date(rent.start_date).toLocaleDateString()}</p>
+                    <p><strong>Fecha Fin:</strong> {rent.return_date ? new Date(rent.return_date).toLocaleDateString() : new Date(rent.max_end_date).toLocaleDateString()}</p>
+                    <p><strong>Pendiente Devolución:</strong> {rent.return_date ? 'No' : 'Si'}</p>
+                    <h4 className="mt-2 font-semibold">Libros Rentados:</h4>
+                    <ul className="list-disc list-inside">
+                      {rent.books.map((book, idx) => (
+                        <li key={idx}>
+                          {book.name} (Cantidad: {book.amount_rented})
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>

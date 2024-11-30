@@ -72,7 +72,6 @@ export default function BookDetails() {
       try {
         const { data } = await axios.get(`https://api-express-web.onrender.com/books/${id}`);
         setBook(data);
-        console.log(data.imageUrl)
       } catch (error) {
         console.error("Failed to fetch book:", error);
       }
