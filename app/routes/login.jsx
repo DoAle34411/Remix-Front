@@ -72,9 +72,8 @@ export const action = async ({ request }) => {
     }
 
     const session = await getSession(request.headers.get("Cookie"));
-    session.set("userId", responseData.cedula);
+    session.set("userId", responseData.userCedula);
     session.set("UUID", responseData.userId);
-    console.log(responseData._id,'new')
     console.log(session.data)
     // Commit the session and store the cookie
     const cookie = await commitSession(session);

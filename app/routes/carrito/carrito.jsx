@@ -4,6 +4,7 @@ import { useLoaderData, Form } from "@remix-run/react";
 import { getSession, commitSession } from "../../utils/auth";
 import axios from 'axios';
 import { redirect } from "@remix-run/node";
+import Navbar from '../../components/Navbar';
 
 export const loader = async ({ request }) => {
     try {
@@ -90,6 +91,7 @@ export default function Carrito() {
 
   return (
     <div>
+    <Navbar/>
       <h1>Your Cart</h1>
       {cart.length === 0 ? (
         <p>Your cart is empty</p>

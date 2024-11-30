@@ -49,7 +49,7 @@ export const action = async ({ request }) => {
         birthDate,
         phoneNumber,
         password,
-        gender
+        gender,
       }),
     });
 

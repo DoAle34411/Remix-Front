@@ -1,13 +1,13 @@
-//routes/home
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useLoaderData } from "@remix-run/react";
 import Navbar from "../components/Navbar";
-import BookList from '../components/Booklist';
 import { redirect } from "@remix-run/node";
-import { getSession } from "../utils/auth"; 
-import { useEffect, useState } from 'react';
+import { getSession } from "../utils/auth";
 import axios from 'axios';
+import styles from '../styles/generalStyles.module.css';
+import { useNavigate } from "@remix-run/react";
 
-// Check if the user is logged in and get the userId from the session
+// Loader function
 export const loader = async ({ request }) => {
   const session = await getSession(request.headers.get("Cookie"));
   console.log(session.get('userId'));
@@ -15,10 +15,12 @@ export const loader = async ({ request }) => {
   return { userId: session.get("userId"), UUID: session.get("UUID") };
 };
 
-const Home = ({ userId }) => {
+const Home = () => {
+  const { userId, UUID } = useLoaderData();
   const [recommendedBooks, setRecommendedBooks] = useState([]);
   const [trendingBooks, setTrendingBooks] = useState([]);
   const [carrito, setCarrito] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Check if window is defined to avoid sessionStorage access on the server
@@ -39,68 +41,165 @@ const Home = ({ userId }) => {
       try {
         const historyResponse = await axios.get(`https://api-express-web.onrender.com/rent/rents/genres/user/${UUID}`);
         if (historyResponse.data.length === 0) {
-          // No history, get top 6 most rented books of all time
-          const allTimeRentedResponse = await axios.get('https://api-express-web.onrender.com/rent/rents/genres/most-rented');
-          const topGenres = allTimeRentedResponse.data.slice(0, 6).map(genre => genre[0]);
-          const books = await axios.get('https://api-express-web.onrender.com/books', { params: { genres: topGenres } });
-          setRecommendedBooks(books.data);
+          const allTimeRentedResponse = await axios.get('https://api-express-web.onrender.com/rent/rents/top-books/month');
+          setRecommendedBooks(allTimeRentedResponse.data);
         } else {
-          // Get most rented genres by user and recommend books based on those genres
           const userGenresResponse = await axios.get(`https://api-express-web.onrender.com/rent/rents/genres/user/${UUID}`);
           const topGenres = userGenresResponse.data.slice(0, 6).map(genre => genre[0]);
-          const books = await axios.get('https://api-express-web.onrender.com/books', { params: { genres: topGenres } });
-          setRecommendedBooks(books.data);
+          const books = await axios.get('https://api-express-web.onrender.com/books/book/by-genres', {params: { genres: topGenres.join(',') },});
+          setRecommendedBooks(books.data.slice(0, 10));
         }
       } catch (error) {
         console.error('Error fetching recommendations:', error);
       }
     };
-
     if (userId) {
       fetchRecommendations();
     }
-  }, [userId]);
+  }, [userId, UUID]);
 
   // Fetch trending books
   useEffect(() => {
     const fetchTrendingBooks = async () => {
       try {
-        const allTimeRented = await axios.get('https://api-express-web.onrender.com/rent/rents/genres/most-rented');
-        const topAllTimeBooks = allTimeRented.data.slice(0, 3).map(book => book[0]);
-        const lastMonth = new Date();
-        lastMonth.setMonth(lastMonth.getMonth() - 1);
-        const recentRented = await axios.get('https://api-express-web.onrender.com/rent/rents/genres/most-rented/time', {
-          params: { startDate: lastMonth.toISOString(), endDate: new Date().toISOString() }
-        });
-        const topRecentBooks = recentRented.data.slice(0, 3).map(book => book[0]);
+        // Fetch all-time rented books
+        const allTimeRented = await axios.get('https://api-express-web.onrender.com/rent/rents/top-books/');
+        console.log('All Time Rented:', allTimeRented.data);
 
-        // Combine and fetch book details
-        const trendingBookIds = [...topAllTimeBooks, ...topRecentBooks];
-        const books = await axios.get('https://api-express-web.onrender.com/books', { params: { ids: trendingBookIds } });
-        setTrendingBooks(books.data);
-      } catch (error) {
+        // Fetch recent month rented books
+        const recentRented = await axios.get('https://api-express-web.onrender.com/rent/rents/top-books/month');
+        console.log('Recent Rented:', recentRented.data);
+
+        // Combine books and remove duplicates based on _id
+        const combinedBooks = [...allTimeRented.data, ...recentRented.data];
+        const uniqueBooks = combinedBooks.reduce((acc, book) => {
+            if (!acc.some(existingBook => existingBook._id === book._id)) {
+                acc.push(book); // Add book only if its _id is not already in the accumulator
+            }
+            return acc;
+        }, []);
+
+        console.log('Unique Trending Books:', uniqueBooks);
+
+        // Update the state with the filtered books
+        setTrendingBooks(uniqueBooks);
+
+} catch (error) {
         console.error('Error fetching trending books:', error);
       }
     };
+    
     fetchTrendingBooks();
   }, []);
 
   return (
     <div>
       <Navbar/>
-      <h1>Welcome to the Home Page</h1>
-      <h2>Recommended for You</h2>
-      <div className="recommendations">
-        {recommendedBooks.map(book => (
-          <div key={book._id}>{book.title}</div>
-        ))}
+      
+      <br />
+      <h1 className="text-3xl font-bold text-center text-gray-800 mb-4">Bienvenido</h1>
+      <br />
+
+      {/* Recommended Books Section */}
+      <div className="px-4 mx-12 mb-8">
+        <h2 className="text-2xl font-semibold text-gray-800 mb-4">Recomendados para Ti</h2>
+        {recommendedBooks.length === 0 ? (
+          <div className="text-center text-gray-500 mt-8">
+            No hay libros recomendados en este momento.
+          </div>
+        ) : (
+          <div className={styles.flexGrid}>
+            {recommendedBooks.map(book => (
+              <div
+                key={book._id}
+                onClick={() => navigate(`/books/bookDetails/${book._id}`)}
+                className="flex flex-col w-64 bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+              >
+                <div className="h-80 overflow-hidden">
+                  <img
+                    src={book.imageUrl}
+                    alt={book.name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.src = 'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png';
+                    }}
+                  />
+                </div>
+                <div className="p-4">
+                  <h3 className="text-lg font-semibold text-gray-800 line-clamp-2 mb-2">
+                    {book.name}
+                  </h3>
+                  <p className="text-gray-600">
+                    Por: {book.author}
+                  </p>
+                  <div className="mt-2 flex justify-between items-center">
+                    <span className="text-sm text-gray-500">
+                      Disponibles: {book.amountAvailable}
+                    </span>
+                    <span className={`px-2 py-1 rounded-full text-xs ${
+                      book.status === 'Available'
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {book.status}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
-      <h2>Trending Books</h2>
-      <div className="trending">
-        {trendingBooks.map(book => (
-          <div key={book._id}>{book.title}</div>
-        ))}
+      {/* Trending Books Section */}
+      <div className="px-4 mx-12 mb-8">
+        <h2 className="text-2xl font-semibold text-gray-800 mb-4">Libros de Tendencia</h2>
+        {trendingBooks.length === 0 ? (
+          <div className="text-center text-gray-500 mt-8">
+            No hay libros de tendencia en este momento.
+          </div>
+        ) : (
+          <div className={styles.flexGrid}>
+            {trendingBooks.map(book => (
+              <div
+                key={book._id}
+                onClick={() => navigate(`/books/bookDetails/${book._id}`)}
+                className="flex flex-col w-64 bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+              >
+                <div className="h-80 overflow-hidden">
+                  <img
+                    src={book.imageUrl}
+                    alt={book.name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.src = 'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png';
+                    }}
+                  />
+                </div>
+                <div className="p-4">
+                  <h3 className="text-lg font-semibold text-gray-800 line-clamp-2 mb-2">
+                    {book.name}
+                  </h3>
+                  <p className="text-gray-600">
+                    Por: {book.author}
+                  </p>
+                  <div className="mt-2 flex justify-between items-center">
+                    <span className="text-sm text-gray-500">
+                      Disponibles: {book.amountAvailable}
+                    </span>
+                    <span className={`px-2 py-1 rounded-full text-xs ${
+                      book.status === 'Available'
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {book.status}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

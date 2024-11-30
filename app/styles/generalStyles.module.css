@@ -145,4 +145,44 @@
     flex-wrap: wrap;
     margin:5%;
     gap:1%;
+    justify-content:space-around;
   }
+
+  .siteHeader .siteSubheader{
+    font-size: 24px;
+    font-weight: bold;
+  }
+
+  .siteHeader {
+    text-align: center;
+  }
+
+  /* Ensure the loader is centered */
+.loaderContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh; /* Full viewport height */
+  background-color: #f9f9f9; /* Optional background color */
+  margin: 0;
+}
+
+/* Classic spinning circle */
+.loader {
+  border: 8px solid #f3f3f3; /* Light border color */
+  border-top: 8px solid #3498db; /* Blue top border for the spinning effect */
+  border-radius: 50%; /* Makes it circular */
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite; /* Spinning animation */
+}
+
+/* Spin animation */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -6,6 +6,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '../../components/Card.
 import { Button } from '../../components/Button.jsx';
 import { Input } from '../../components/Input.jsx';
 import { Alert, AlertDescription } from '../../components/Alert.jsx';
+import Navbar from '../../components/Navbar.jsx';
 
 // Loader function - this goes outside the component
 export async function loader({ request }) {
@@ -96,102 +97,105 @@ const Usuario = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto p-6">
-        <Card className="w-full">
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold">Usuario</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h3 className="font-semibold">Cédula</h3>
-                  <p>{user.cedula}</p>
+    <div>
+      <Navbar/>
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-4xl mx-auto p-6">
+          <Card className="w-full">
+            <CardHeader>
+              <CardTitle className="text-2xl font-bold">Usuario</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <h3 className="font-semibold">Cédula</h3>
+                    <p>{user.cedula}</p>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Email</h3>
+                    <p>{user.email}</p>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Nombre</h3>
+                    <p>{user.name} {user.lastName}</p>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Teléfono</h3>
+                    <p>{user.phoneNumber}</p>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Fecha de Nacimiento</h3>
+                    <p>{new Date(user.birthDate).toLocaleDateString()}</p>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Género</h3>
+                    <p>{user.gender}</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold">Email</h3>
-                  <p>{user.email}</p>
-                </div>
-                <div>
-                  <h3 className="font-semibold">Nombre</h3>
-                  <p>{user.name} {user.lastName}</p>
-                </div>
-                <div>
-                  <h3 className="font-semibold">Teléfono</h3>
-                  <p>{user.phoneNumber}</p>
-                </div>
-                <div>
-                  <h3 className="font-semibold">Fecha de Nacimiento</h3>
-                  <p>{new Date(user.birthDate).toLocaleDateString()}</p>
-                </div>
-                <div>
-                  <h3 className="font-semibold">Género</h3>
-                  <p>{user.gender}</p>
+
+                <div className="mt-8">
+                  <Button 
+                    onClick={() => setIsChangingPassword(!isChangingPassword)}
+                    className="w-full md:w-auto"
+                  >
+                    {isChangingPassword ? 'Cancelar' : 'Cambiar Contraseña'}
+                  </Button>
+
+                  {isChangingPassword && (
+                    <form onSubmit={handleSubmitPassword} className="mt-4 space-y-4">
+                      <div>
+                        <Input
+                          type="password"
+                          name="oldPassword"
+                          placeholder="Contraseña Actual"
+                          value={passwordForm.oldPassword}
+                          onChange={handlePasswordChange}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Input
+                          type="password"
+                          name="newPassword"
+                          placeholder="Nueva Contraseña"
+                          value={passwordForm.newPassword}
+                          onChange={handlePasswordChange}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Input
+                          type="password"
+                          name="confirmPassword"
+                          placeholder="Confirmar Nueva Contraseña"
+                          value={passwordForm.confirmPassword}
+                          onChange={handlePasswordChange}
+                          required
+                        />
+                      </div>
+                      <Button type="submit" className="w-full md:w-auto">
+                        Actualizar Contraseña
+                      </Button>
+                    </form>
+                  )}
+
+                  {error && (
+                    <Alert variant="destructive" className="mt-4">
+                      <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                  )}
+
+                  {success && (
+                    <Alert className="mt-4">
+                      <AlertDescription>{success}</AlertDescription>
+                    </Alert>
+                  )}
                 </div>
               </div>
-
-              <div className="mt-8">
-                <Button 
-                  onClick={() => setIsChangingPassword(!isChangingPassword)}
-                  className="w-full md:w-auto"
-                >
-                  {isChangingPassword ? 'Cancelar' : 'Cambiar Contraseña'}
-                </Button>
-
-                {isChangingPassword && (
-                  <form onSubmit={handleSubmitPassword} className="mt-4 space-y-4">
-                    <div>
-                      <Input
-                        type="password"
-                        name="oldPassword"
-                        placeholder="Contraseña Actual"
-                        value={passwordForm.oldPassword}
-                        onChange={handlePasswordChange}
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Input
-                        type="password"
-                        name="newPassword"
-                        placeholder="Nueva Contraseña"
-                        value={passwordForm.newPassword}
-                        onChange={handlePasswordChange}
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Input
-                        type="password"
-                        name="confirmPassword"
-                        placeholder="Confirmar Nueva Contraseña"
-                        value={passwordForm.confirmPassword}
-                        onChange={handlePasswordChange}
-                        required
-                      />
-                    </div>
-                    <Button type="submit" className="w-full md:w-auto">
-                      Actualizar Contraseña
-                    </Button>
-                  </form>
-                )}
-
-                {error && (
-                  <Alert variant="destructive" className="mt-4">
-                    <AlertDescription>{error}</AlertDescription>
-                  </Alert>
-                )}
-
-                {success && (
-                  <Alert className="mt-4">
-                    <AlertDescription>{success}</AlertDescription>
-                  </Alert>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
