@@ -86,7 +86,7 @@ const Home = () => {
         // Update the state with the filtered books
         setTrendingBooks(uniqueBooks);
 
-} catch (error) {
+      } catch (error) {
         console.error('Error fetching trending books:', error);
       }
     };
@@ -95,40 +95,33 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
-    const fetchEvents = async () => {
+    const fetchEventsAndBooks = async () => {
       try {
-        const response = await axios.get('https://api-express-web.onrender.com/event/events/currentEvents');
-        const eventsData = response.data;
+        const eventsResponse = await axios.get('https://api-express-web.onrender.com/event/events/currentEvents');
+        const eventsData = eventsResponse.data;
         setEvents(eventsData);
-  
-        // Create a map to store books for each event
-        const booksForEvents = {};
-  
-        // Process each event independently
+
+        // Map to store books for each event
+        const booksMap = {};
+
+        // Fetch books for each event
         await Promise.all(
           eventsData.map(async (event) => {
             const { genres } = event;
-  
-            // Fetch books for the genres specific to this event
             const booksResponse = await axios.get('https://api-express-web.onrender.com/books/book/by-genres', {
               params: { genres: genres.join(',') },
             });
-  
-            // Filter and limit books to a maximum of 6
-            const books = booksResponse.data.slice(0, 6);
-  
-            // Save books for this specific event
-            booksForEvents[event.id] = books;
+            booksMap[event.id] = booksResponse.data.slice(0, 6);
           })
         );
-  
-        setEventBooks(booksForEvents);
+
+        setEventBooks(booksMap);
       } catch (error) {
-        console.error('Error fetching events or books for genres:', error);
+        console.error('Error fetching events or books:', error);
       }
     };
-  
-    fetchEvents();
+
+    fetchEventsAndBooks();
   }, []);
   
   
@@ -266,7 +259,8 @@ const Home = () => {
                           alt={book.name}
                           className="w-full h-full object-cover"
                           onError={(e) => {
-                            e.target.src = 'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png';
+                            e.target.src =
+                              'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png';
                           }}
                         />
                       </div>
@@ -293,7 +287,9 @@ const Home = () => {
                     </div>
                   ))
                 ) : (
-                  <div className="text-center text-gray-500">No hay libros disponibles para este evento.</div>
+                  <div className="text-center text-gray-500">
+                    No hay libros disponibles para este evento.
+                  </div>
                 )}
               </div>
             </div>
