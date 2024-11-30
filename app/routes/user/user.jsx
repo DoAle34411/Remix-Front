@@ -61,61 +61,6 @@ const Usuario = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const navigate = useNavigate();
-  const [rentsWithBooks, setRentsWithBooks] = useState([]);
-
-  useEffect(() => {
-    const fetchBookNames = async () => {
-      // Start by processing each rent asynchronously
-      const updatedRents = await Promise.all(
-        rents.map(async (rent) => {
-          // Process each book within the rent asynchronously
-          const booksWithNames = await Promise.all(
-            rent.books.map(async (book) => {
-              try {
-                // Ensure book.id_Book is directly a string, and log it for debugging
-                const bookId = book.id_Book; // book.id_Book should be a string as per your schema
-                console.log('Book ID:', bookId); // Debugging line to see the ID
-  
-                // Fetch book details using the ID
-                const response = await fetch(`https://api-express-web.onrender.com/books/${bookId}`, {
-                  credentials: 'include',
-                  headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                  }
-                });
-  
-                // Check if the response is successful
-                if (!response.ok) {
-                  throw new Error(`Failed to fetch book with ID ${bookId}`);
-                }
-  
-                // Parse the response data
-                const bookData = await response.json();
-  
-                // Return the updated book with the name
-                return { ...book, name: bookData.name };
-              } catch (error) {
-                // Handle any errors that occur during the fetch
-                console.error(`Error fetching book with ID ${book.id_Book}:`, error);
-                return { ...book, name: 'Desconocido' }; // Default name if error occurs
-              }
-            })
-          );
-  
-          // Return the updated rent with books including their names
-          return { ...rent, books: booksWithNames };
-        })
-      );
-  
-      // Update the state with the modified rents
-      setRentsWithBooks(updatedRents);
-    };
-  
-    // Trigger the book fetching logic
-    fetchBookNames();
-  }, [rents]);
-  
   
 
   const handlePasswordChange = (e) => {
@@ -283,7 +228,7 @@ const Usuario = () => {
                     <ul className="list-disc list-inside">
                       {rent.books.map((book, idx) => (
                         <li key={idx}>
-                          {book.name} (Cantidad: {book.amount_rented})
+                          {book.id_Book.name} (Cantidad: {book.amount_rented})
                         </li>
                       ))}
                     </ul>
