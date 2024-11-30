@@ -19,6 +19,8 @@ const Home = () => {
   const { userId, UUID } = useLoaderData();
   const [recommendedBooks, setRecommendedBooks] = useState([]);
   const [trendingBooks, setTrendingBooks] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [eventBooks, setEventBooks] = useState({});
   const [carrito, setCarrito] = useState([]);
   const navigate = useNavigate();
 
@@ -90,6 +92,39 @@ const Home = () => {
     };
     
     fetchTrendingBooks();
+  }, []);
+
+  useEffect(() => {
+    // Fetch current events
+    const fetchEvents = async () => {
+      try {
+        const response = await axios.get('https://api-express-web.onrender.com/event/events/currentEvents');
+        setEvents(response.data);
+
+        // Fetch books for each event's genres
+        const booksForEvents = {};
+        for (const event of response.data) {
+          const { genres } = event;
+          const genreCount = genres.length;
+          const booksPerGenre = Math.floor(6 / genreCount);
+          const booksResponse = await axios.get('https://api-express-web.onrender.com/books/book/by-genres', {
+            params: { genres: genres.join(',') },
+          });
+
+          // Distribute books evenly based on genres
+          const books = genres.flatMap((genre) =>
+            booksResponse.data.filter((book) => book.genre === genre).slice(0, booksPerGenre)
+          );
+
+          booksForEvents[event.id] = books.slice(0, 6); // Ensure only 6 books are displayed
+        }
+        setEventBooks(booksForEvents);
+      } catch (error) {
+        console.error('Error fetching events or books for genres:', error);
+      }
+    };
+
+    fetchEvents();
   }, []);
 
   return (
@@ -199,6 +234,61 @@ const Home = () => {
               </div>
             ))}
           </div>
+        )}
+      </div>
+      <div className="px-4 mx-12 mb-8">
+        <h2 className="text-2xl font-semibold text-gray-800 mb-4">Eventos Actuales</h2>
+        {events.length === 0 ? (
+          <div className="text-center text-gray-500 mt-8">No hay eventos actuales en este momento.</div>
+        ) : (
+          events.map((event) => (
+            <div key={event.id} className="mb-8">
+              <h3 className="text-xl font-bold text-gray-700 mb-2">{event.name}</h3>
+              <p className="text-gray-600 mb-4">{event.description}</p>
+              <div className={styles.flexGrid}>
+                {eventBooks[event.id]?.length > 0 ? (
+                  eventBooks[event.id].map((book) => (
+                    <div
+                      key={book._id}
+                      onClick={() => navigate(`/books/bookDetails/${book._id}`)}
+                      className="flex flex-col w-64 bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                    >
+                      <div className="h-80 overflow-hidden">
+                        <img
+                          src={book.imageUrl}
+                          alt={book.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.target.src = 'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png';
+                          }}
+                        />
+                      </div>
+                      <div className="p-4">
+                        <h3 className="text-lg font-semibold text-gray-800 line-clamp-2 mb-2">
+                          {book.name}
+                        </h3>
+                        <p className="text-gray-600">Por: {book.author}</p>
+                        <div className="mt-2 flex justify-between items-center">
+                          <span className="text-sm text-gray-500">
+                            Disponibles: {book.amountAvailable}
+                          </span>
+                          <span className={`px-2 py-1 rounded-full text-xs ${
+                            book.status === 'Available'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {book.status}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center text-gray-500">No hay libros disponibles para este evento.</div>
+                )}
+              </div>
+            </div>
+          ))
         )}
       </div>
     </div>
