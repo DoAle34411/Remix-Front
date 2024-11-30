@@ -95,37 +95,47 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
-    // Fetch current events
     const fetchEvents = async () => {
       try {
         const response = await axios.get('https://api-express-web.onrender.com/event/events/currentEvents');
-        setEvents(response.data);
-
-        // Fetch books for each event's genres
+        const eventsData = response.data;
+        setEvents(eventsData);
+  
+        // Create a map to store books for each event
         const booksForEvents = {};
-        for (const event of response.data) {
+  
+        // Fetch books for each event's genres
+        for (const event of eventsData) {
           const { genres } = event;
           const genreCount = genres.length;
-          const booksPerGenre = Math.floor(6 / genreCount);
+  
+          // Fetch books for all genres in the event
           const booksResponse = await axios.get('https://api-express-web.onrender.com/books/book/by-genres', {
             params: { genres: genres.join(',') },
           });
-
-          // Distribute books evenly based on genres
-          const books = genres.flatMap((genre) =>
-            booksResponse.data.filter((book) => book.genre === genre).slice(0, booksPerGenre)
-          );
-
-          booksForEvents[event.id] = books.slice(0, 6); // Ensure only 6 books are displayed
+  
+          // Distribute books evenly among genres
+          const books = [];
+          genres.forEach((genre) => {
+            const genreBooks = booksResponse.data
+              .filter((book) => book.genre === genre) // Match books by genre
+              .slice(0, Math.floor(6 / genreCount)); // Limit number of books per genre
+            books.push(...genreBooks);
+          });
+  
+          // Ensure the books list is limited to 6 per event
+          booksForEvents[event.id] = books.slice(0, 6);
         }
+  
         setEventBooks(booksForEvents);
       } catch (error) {
         console.error('Error fetching events or books for genres:', error);
       }
     };
-
+  
     fetchEvents();
   }, []);
+  
 
   return (
     <div>
@@ -244,7 +254,7 @@ const Home = () => {
           events.map((event) => (
             <div key={event.id} className="mb-8">
               <h3 className="text-xl font-bold text-gray-700 mb-2">{event.name}</h3>
-              <p className="text-gray-600 mb-4">{event.description}</p>
+              <p className="text-gray-600 mb-4">{event.descripcion}</p>
               <div className={styles.flexGrid}>
                 {eventBooks[event.id]?.length > 0 ? (
                   eventBooks[event.id].map((book) => (
