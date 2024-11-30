@@ -70,7 +70,7 @@ const Usuario = () => {
           const booksWithNames = await Promise.all(
             rent.books.map(async (book) => {
               try {
-                const response = await fetch(`https://api-express-web.onrender.com/books/${book.id}`, {
+                const response = await fetch(`https://api-express-web.onrender.com/books/${book.id_Book}`, {
                   credentials: 'include',
                   headers: {
                     'Accept': 'application/json',
@@ -80,7 +80,7 @@ const Usuario = () => {
                 const bookData = await response.json();
                 return { ...book, name: bookData.name };
               } catch (error) {
-                console.error(`Failed to fetch book with ID ${book.id}:`, error);
+                console.error(`Failed to fetch book with ID ${book.id_Book}:`, error);
                 return { ...book, name: 'Desconocido' }; // Default if fetch fails
               }
             })
