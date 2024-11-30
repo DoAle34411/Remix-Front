@@ -104,28 +104,23 @@ const Home = () => {
         // Create a map to store books for each event
         const booksForEvents = {};
   
-        // Fetch books for each event's genres
-        for (const event of eventsData) {
-          const { genres } = event;
-          const genreCount = genres.length;
+        // Process each event independently
+        await Promise.all(
+          eventsData.map(async (event) => {
+            const { genres } = event;
   
-          // Fetch books for all genres in the event
-          const booksResponse = await axios.get('https://api-express-web.onrender.com/books/book/by-genres', {
-            params: { genres: genres.join(',') },
-          });
+            // Fetch books for the genres specific to this event
+            const booksResponse = await axios.get('https://api-express-web.onrender.com/books/book/by-genres', {
+              params: { genres: genres.join(',') },
+            });
   
-          // Distribute books evenly among genres
-          const books = [];
-          genres.forEach((genre) => {
-            const genreBooks = booksResponse.data
-              .filter((book) => book.genre === genre) // Match books by genre
-              .slice(0, Math.floor(6 / genreCount)); // Limit number of books per genre
-            books.push(...genreBooks);
-          });
+            // Filter and limit books to a maximum of 6
+            const books = booksResponse.data.slice(0, 6);
   
-          // Ensure the books list is limited to 6 per event
-          booksForEvents[event.id] = books.slice(0, 6);
-        }
+            // Save books for this specific event
+            booksForEvents[event.id] = books;
+          })
+        );
   
         setEventBooks(booksForEvents);
       } catch (error) {
@@ -135,6 +130,7 @@ const Home = () => {
   
     fetchEvents();
   }, []);
+  
   
 
   return (
@@ -246,6 +242,7 @@ const Home = () => {
           </div>
         )}
       </div>
+      {/* Current Events Section */}
       <div className="px-4 mx-12 mb-8">
         <h2 className="text-2xl font-semibold text-gray-800 mb-4">Eventos Actuales</h2>
         {events.length === 0 ? (
@@ -282,11 +279,13 @@ const Home = () => {
                           <span className="text-sm text-gray-500">
                             Disponibles: {book.amountAvailable}
                           </span>
-                          <span className={`px-2 py-1 rounded-full text-xs ${
-                            book.status === 'Available'
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-red-100 text-red-800'
-                          }`}>
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs ${
+                              book.status === 'Available'
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-red-100 text-red-800'
+                            }`}
+                          >
                             {book.status}
                           </span>
                         </div>
