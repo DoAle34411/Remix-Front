@@ -218,7 +218,7 @@ const Usuario = () => {
                 <CardTitle className="text-2xl font-bold">Historial</CardTitle>
               </CardHeader>
               <CardContent>
-              {rentsWithBooks.map((rent, index) => (
+              {rents.map((rent, index) => (
                   <div key={rent.id} className="mb-4">
                     <h3 className="text-lg font-semibold">Renta No. {index + 1}</h3>
                     <p><strong>Fecha Inicio:</strong> {new Date(rent.start_date).toLocaleDateString()}</p>
