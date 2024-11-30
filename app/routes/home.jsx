@@ -111,10 +111,11 @@ const Home = () => {
             const booksResponse = await axios.get('https://api-express-web.onrender.com/books/book/by-genres', {
               params: { genres: genres.join(',') },
             });
-            booksMap[event.id] = booksResponse.data.slice(0, 6);
+            booksMap[event._id] = booksResponse.data.slice(0, 6);
+            console.log(booksMap[event._id])
           })
         );
-
+        console.log(booksMap)
         setEventBooks(booksMap);
       } catch (error) {
         console.error('Error fetching events or books:', error);
