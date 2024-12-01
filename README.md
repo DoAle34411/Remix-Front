@@ -21,18 +21,17 @@ Este proyecto es una aplicación frontend desarrollada con [Remix](https://remix
 ### Frontend
 - **Remix**: Framework basado en React que prioriza velocidad y simplicidad.
 - **TailwindCSS**: Framework de CSS para estilos rápidos y responsivos.
-- **Styled Components**: Para estilos personalizados.
 - **Vite**: Herramienta de construcción para desarrollo rápido y compilaciones optimizadas.
 
 ### Backend (Dependencia)
-- Backend desarrollado con **NestJS** y alojado en **Azure Web App**, encargado de manejar la lógica de negocio, almacenamiento y recomendaciones. *(La documentación del backend está en otro repositorio.)*
+- Backend desarrollado con **ExpressJS** y alojado en **Render**, encargado de manejar la lógica de negocio, almacenamiento y recomendaciones.
 
 ---
 
 ## Requisitos Previos
 
 1. **Node.js** (v16 o superior).
-2. **NPM** (v7 o superior) o **Yarn**.
+2. **NPM** (v7 o superior)
 3. Conexión al backend (proporcionar la URL en las variables de entorno).
 
 ---
